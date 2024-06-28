@@ -1,13 +1,12 @@
 #pragma once
+#ifndef POINTCLOUD_H
+#define POINTCLOUD_H
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <map>
 #include <ctime>
-
-#ifndef POINTCLOUD_H
-#define POINTCLOUD_H
 
 // for text to pcd
 #include <pcl/io/pcd_io.h>
@@ -27,6 +26,8 @@
 
 #include <pcl/features/normal_3d.h>
 #include <filesystem>
+
+#endif // POINTCLOUD_H
 
 class PointCloud
 {
@@ -64,6 +65,8 @@ private:
         const std::string& output_folder,
         bool colorful_segmentation,
         const std::string& raw_file, const std::string& saving_type);
+
+    void clearFolder(const std::filesystem::path& folderPath);
 };
 
 // Derived class to access protected method
@@ -72,5 +75,3 @@ class AccessibleLCCPSegmentation : public pcl::LCCPSegmentation<PointT> {
 public:
     using pcl::LCCPSegmentation<PointT>::mergeSmallSegments;
 };
-
-#endif // POINTCLOUD_H

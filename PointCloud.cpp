@@ -1,5 +1,4 @@
 #include "PointCloud.h"
-#define _CRT_SECURE_NO_WARNINGS
 
 // Typedefs for simplicity
 typedef pcl::PointXYZ PointT;
@@ -289,6 +288,8 @@ void PointCloud::segmentPointCloud(const std::string& input_cloud_file,
 void PointCloud::saveSegmentedClouds(const pcl::PointCloud<pcl::PointXYZL>::Ptr& labeled_cloud,
     const std::string& output_folder, bool colorful_segmentation, const std::string& raw_file, const std::string& saving_type) {
 
+    clearFolder(output_folder);
+
     if (!std::filesystem::exists(output_folder)) {
         std::cerr << "Error: Output folder does not exist: " << output_folder << std::endl;
         return;
@@ -385,4 +386,28 @@ void PointCloud::saveSegmentedClouds(const pcl::PointCloud<pcl::PointXYZL>::Ptr&
     }
 
     std::cerr << "Process completed successfully\n";
+}
+
+void PointCloud::clearFolder(const std::filesystem::path& folderPath)
+{
+    if (!std::filesystem::exists(folderPath)) {
+        std::cerr << "Error: Folder '" << folderPath << "' does not exist." << std::endl;
+        return;
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
+        if (std::filesystem::is_regular_file(entry)) {
+            try {
+                std::filesystem::remove(entry);
+                std::cout << "Deleted file: " << entry.path() << std::endl; // Optional: Log deleted files
+            }
+            catch (const std::filesystem::filesystem_error& e) {
+                std::cerr << "Error deleting file '" << entry.path() << "': " << e.what() << std::endl;
+            }
+        }
+        else if (std::filesystem::is_directory(entry)) {
+            // Recursively clear subdirectories (optional, comment out if not desired)
+            // clearFolder(entry); // Uncomment to recursively clear subdirectories
+        }
+    }
 }
