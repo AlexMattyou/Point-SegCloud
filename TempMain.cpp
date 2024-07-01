@@ -13,11 +13,11 @@ int main(int argc, char** argv)
     std::string project_name = "trees_new";
     std::string project_file = "trees.txt";
 
-    bool pcl_convert_bool = false;
-    bool save_normal_bool = false;
-    bool segmentation_bool = false;
+    bool pcl_convert_bool = true;
+    bool save_normal_bool = true;
+    bool segmentation_bool = true;
 
-    bool extract1_bool = true;
+    bool extract_features_bool = true;
 
     pc.CheckAndCreateProject(project_name);
     pc.CheckAndCreateProject(project_name + "/Segments");
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
         std::cout << "time elapsed: " << duration << " seconds." << std::endl;
     }
 
-    if (extract1_bool) {
+    if (extract_features_bool) {
         std::string project_files = "Projects/" + project_name;
         std::vector<std::string> features_need = { 
         "Geometrical", 

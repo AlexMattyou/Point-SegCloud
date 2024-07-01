@@ -15,27 +15,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MainFrame.h">
+    <ClInclude Include="App.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PointCloud.h">
+    <ClInclude Include="MainFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FeatureExtract.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PointCloud.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="App.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MainFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EventFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FeatureExtract.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PointCloud.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TempMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FeatureExtract.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
