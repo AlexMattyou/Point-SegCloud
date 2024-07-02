@@ -1,17 +1,23 @@
 #include "MainFrame.h"
+#include "PointCloud.h"
+#include "FeatureExtract.h"
 
 void MainFrame::OnCloseEvt(wxCloseEvent& event) {
-    SaveProjectOptions();
+    SaveProjectOptions(true);
     ConfirmClose();
 }
 
 void MainFrame::OnFileDropEvt(wxDropFilesEvent& event) {
-
-    event.Skip();
+    wxString* droppedFiles = event.GetFiles();
+    if (droppedFiles && droppedFiles[0].IsEmpty()) {
+        dataset_input->SetPath(droppedFiles[0]);
+    }
+    event.Skip(); // Allow default processing of the event
 }
 
 void MainFrame::OnMenuNew(wxCommandEvent& event) {
 
+    ShowStatus("Fields cleared to add new things");
     // Clear project name input
     project_name_input->Clear();
 
@@ -22,6 +28,7 @@ void MainFrame::OnMenuNew(wxCommandEvent& event) {
 
 void MainFrame::OnMenuOpen(wxCommandEvent& event) {
 
+    ShowStatus("Select a project from the list");
     // Create a new wxFrame for listing projects
     wxFrame* projectListFrame = new wxFrame(this, wxID_ANY, "Project List", wxDefaultPosition, wxSize(300, 400));
 
@@ -73,6 +80,8 @@ void MainFrame::OnProjectSelection(wxCommandEvent& event) {
             wxString projectName = listBox->GetString(selectedIdx);
             project_name = projectName;
 
+            ReadProjectOptions();
+
             // Update project_name_input
             project_name_input->SetValue(projectName);
 
@@ -120,22 +129,26 @@ void MainFrame::OnMenuDelete(wxCommandEvent& event) {
             status_bar->SetStatusText("Failed to delete project folder: " + wxString(e.what(), wxConvUTF8));
         }
     }
+    ShowStatus("Project deleted");
 
     event.Skip();  // Continue handling the event normally
 }
 
 
 void MainFrame::OnMenuExit(wxCommandEvent& event) {
-    SaveProjectOptions();
+    ShowStatus("Select 'Yes' to exit");
+    SaveProjectOptions(true);
     ConfirmClose();
 }
 
 void MainFrame::OnHelpDocs(wxCommandEvent& event) {
+    ShowStatus("README.MD in the repository was opened");
     wxLaunchDefaultBrowser("https://github.com/AlexMattyou/PointCloudSegmentation/blob/master/README.md");
     event.Skip();
 }
 
 void MainFrame::OnHelpReport(wxCommandEvent& event) {
+    ShowStatus("Issues in the repository was opened, you can write the problems there");
     wxLaunchDefaultBrowser("https://github.com/AlexMattyou/PointCloudSegmentation/issues");
     event.Skip();
 }
@@ -174,6 +187,7 @@ void MainFrame::ViewProjectEvt(wxMouseEvent& event) {
     }
 
     // Open the project folder in the file manager
+    ShowStatus("Project folder opened");
     OpenInFileManager(absolutePath);
 
     event.Skip();
@@ -203,6 +217,7 @@ void MainFrame::ViewSegmentationEvt(wxMouseEvent& event) {
     }
 
     // Open the segments folder in the file manager
+    ShowStatus("Segmentation folder opened");
     OpenInFileManager(absolutePath);
 
     event.Skip();
@@ -232,19 +247,24 @@ void MainFrame::OpenFeaturesEvt(wxMouseEvent& event) {
     }
 
     // Open the feature file in the default application
+    ShowStatus("Extracted feature.csv opened");
     OpenInFileManager(absolutePath);
 
     event.Skip();
 }
 
-
 void MainFrame::StartProcessEvt(wxMouseEvent& event) {
-    SaveProjectOptions();
+    // Show initial status message
+    ShowStatus("Starting Progress...");
+
+    std::thread myThread(&MainFrame::ProcessThreadFunction, this);
+    myThread.detach();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 
 void MainFrame::ConfirmClose() {
+    ShowStatus("Your projects will be saved");
     wxMessageDialog confirmDialog(
         this,
         "Are you sure you want to exit?",
@@ -257,7 +277,7 @@ void MainFrame::ConfirmClose() {
     }
 }
 
-void MainFrame::SaveOptions() {
+void MainFrame::SaveOptions(bool exit) {
     project_name = std::string(project_name_input->GetValue().mb_str());
 
     // Get the absolute path of the dataset
@@ -267,7 +287,9 @@ void MainFrame::SaveOptions() {
 
     // Check if project_name or dataset is empty
     if (project_name.empty() || dataset.empty()) {
-        wxMessageBox("Project name or dataset path cannot be empty.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Project name or dataset path cannot be empty.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -279,7 +301,9 @@ void MainFrame::SaveOptions() {
         voxel_resolution = std::stof(voxel_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid voxel resolution. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid voxel resolution. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -287,7 +311,9 @@ void MainFrame::SaveOptions() {
         seed_resolution = std::stof(seed_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid seed resolution. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid seed resolution. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -295,7 +321,9 @@ void MainFrame::SaveOptions() {
         color_importance = std::stof(color_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid color importance. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid color importance. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -303,7 +331,9 @@ void MainFrame::SaveOptions() {
         spatial_importance = std::stof(spatial_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid spatial importance. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid spatial importance. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -311,7 +341,9 @@ void MainFrame::SaveOptions() {
         normal_importance = std::stof(normal_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid normal importance. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid normal importance. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -319,7 +351,9 @@ void MainFrame::SaveOptions() {
         concavity_tolerance_threshold = std::stof(concavity_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid concavity tolerance threshold. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid concavity tolerance threshold. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -327,7 +361,9 @@ void MainFrame::SaveOptions() {
         smoothness_threshold = std::stof(smoothness_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid smoothness threshold. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid smoothness threshold. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -335,7 +371,9 @@ void MainFrame::SaveOptions() {
         min_segment_size = std::stoul(segment_size_input->GetValue().ToStdString());
     }
     catch (const std::exception&) {
-        wxMessageBox("Invalid minimum segment size. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        if (not exit) {
+            wxMessageBox("Invalid minimum segment size. Please enter a valid number.", "Invalid Input", wxOK | wxICON_WARNING);
+        }
         return;
     }
 
@@ -350,7 +388,9 @@ void MainFrame::SaveOptions() {
         pcl_convert_bool = true;
     }
     else {
-        wxMessageBox("Please choose a .txt or .pcd file.", "Invalid File Type", wxOK | wxICON_INFORMATION);
+        if (not exit) {
+            wxMessageBox("Please choose a .txt or .pcd file.", "Invalid File Type", wxOK | wxICON_INFORMATION);
+        }
         return;
     }
 
@@ -368,6 +408,7 @@ void MainFrame::SaveOptions() {
     if (area_check->GetValue()) features_need.push_back("Area");
 
     // Combine all variables into a single message
+    
     std::stringstream msg;
     msg << "project_name: " << project_name << "\n";
     msg << "dataset: " << dataset << "\n";
@@ -395,10 +436,11 @@ void MainFrame::SaveOptions() {
 
     // Show the message box
     wxMessageBox(msg.str(), "Saved Options", wxOK | wxICON_INFORMATION);
+    
 }
 
-void MainFrame::SaveProjectOptions() {
-    SaveOptions();
+void MainFrame::SaveProjectOptions(bool exit) {
+    SaveOptions(exit);
 
     // Check if project_name is empty
     if (project_name.empty()) {
@@ -456,13 +498,20 @@ void MainFrame::ReadProjectOptions() {
     dataset_input->SetPath(jsonData["dataset"].get<std::string>());
     segment_type = jsonData["segment_type"].get<std::string>();
 
-    voxel_input->SetValue(std::to_string(jsonData["voxel_resolution"].get<float>()));
-    seed_input->SetValue(std::to_string(jsonData["seed_resolution"].get<float>()));
-    color_input->SetValue(std::to_string(jsonData["color_importance"].get<float>()));
-    spatial_input->SetValue(std::to_string(jsonData["spatial_importance"].get<float>()));
-    normal_input->SetValue(std::to_string(jsonData["normal_importance"].get<float>()));
-    concavity_input->SetValue(std::to_string(jsonData["concavity_tolerance_threshold"].get<float>()));
-    smoothness_input->SetValue(std::to_string(jsonData["smoothness_threshold"].get<float>()));
+    auto setFloatValue = [](wxTextCtrl* ctrl, float value) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << value;
+        ctrl->SetValue(oss.str());
+        };
+
+    setFloatValue(voxel_input, jsonData["voxel_resolution"].get<float>());
+    setFloatValue(seed_input, jsonData["seed_resolution"].get<float>());
+    setFloatValue(color_input, jsonData["color_importance"].get<float>());
+    setFloatValue(spatial_input, jsonData["spatial_importance"].get<float>());
+    setFloatValue(normal_input, jsonData["normal_importance"].get<float>());
+    setFloatValue(concavity_input, jsonData["concavity_tolerance_threshold"].get<float>());
+    setFloatValue(smoothness_input, jsonData["smoothness_threshold"].get<float>());
+
     segment_size_input->SetValue(std::to_string(jsonData["min_segment_size"].get<unsigned long>()));
 
     action_normal->SetValue(jsonData["save_normal_bool"].get<bool>());
@@ -485,4 +534,83 @@ void MainFrame::ReadProjectOptions() {
     density_check->SetValue(std::find(features_need.begin(), features_need.end(), "Density") != features_need.end());
     color_check->SetValue(std::find(features_need.begin(), features_need.end(), "Color") != features_need.end());
     area_check->SetValue(std::find(features_need.begin(), features_need.end(), "Area") != features_need.end());
+
+    ShowStatus("Project options recovered");
+}
+
+void MainFrame::ShowStatus(const std::string& text) {
+    status_bar->SetStatusText(wxString(text), 0);
+}
+
+void MainFrame::ProcessThreadFunction() {
+
+    SaveProjectOptions(false);
+
+    PointCloud pc;
+    FeatureExtract data;
+
+    pc.CheckAndCreateProject(project_name);
+    pc.CheckAndCreateProject(project_name + "/Segments");
+
+    std::string input_data;
+    std::string raw_pcd = "Projects/" + project_name + "/raw.pcd";
+    std::string normal_pcd = "Projects/" + project_name + "/normal.pcd";
+    std::string segments_folder = "Projects/" + project_name + "/Segments";
+    this->gauge->SetValue(5);
+    // [] 1
+    if (pcl_convert_bool) {
+
+        ShowStatus("converting text data to pcd...");
+
+        input_data = dataset;
+        std::unordered_map<std::string, int> columnIndex;
+        pc.Txt2pcd(input_data, raw_pcd, columnIndex);
+
+        input_data = raw_pcd;
+        ShowStatus("text data converted to pcd");
+    }
+    else {
+        input_data = dataset;
+
+    }
+    this->gauge->SetValue(10);
+
+    // [] 2
+    if (save_normal_bool) {
+        ShowStatus("Calculating normal...");
+        pc.SaveNormals(input_data, normal_pcd);
+
+        ShowStatus("Normal Calculated");
+    }
+    this->gauge->SetValue(30);
+
+    // [] 3
+    if (segmentation_bool) {
+        ShowStatus("Segmentation Started...");
+        pc.segmentPointCloud(
+            input_data,
+            normal_pcd, 
+            segments_folder,
+
+            voxel_resolution,
+            seed_resolution,
+            color_importance,
+            spatial_importance,
+            normal_importance,
+            use_single_cam_transform,
+            use_supervoxel_refinement,
+
+            concavity_tolerance_threshold,
+            smoothness_threshold,
+            min_segment_size,
+            use_extended_convexity,
+            use_sanity_criterion,
+
+            color_importance != 0.0,
+            segment_type
+
+        );
+        ShowStatus("Segmentation done");
+    }
+    this->gauge->SetValue(85);
 }

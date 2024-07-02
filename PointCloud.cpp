@@ -4,13 +4,6 @@
 typedef pcl::PointXYZ PointT;
 typedef pcl::LCCPSegmentation<PointT>::SupervoxelAdjacencyList SuperVoxelAdjacencyList;
 
-// Global variables for visualization control
-bool show_normals = false, normals_changed = false;
-bool show_adjacency = false;
-bool show_supervoxels = false;
-bool show_help = true;
-float normals_scale;
-
 int PointCloud::CheckAndCreateProject(const std::string& folderName) {
     std::string fullFolderPath = "Projects/" + folderName;
     std::filesystem::path folderPath(fullFolderPath);

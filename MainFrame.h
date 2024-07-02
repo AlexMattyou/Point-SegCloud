@@ -2,6 +2,47 @@
 
 #ifndef MAINFRAME_H
 #define MAINFRAME_H
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <string>
+#include <map>
+#include <ctime>
+#include <fstream>
+#include <vector>
+#include <filesystem>
+#include <sstream>
+#include <limits>
+#include <regex>
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <nlohmann/json.hpp>
+#include <thread>
+
+// for text to pcd
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
+// for normalization
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/surface/mls.h>
+#include <pcl/search/kdtree.h>
+
+// PCL segmentation
+#include <pcl/segmentation/lccp_segmentation.h>
+#include <pcl/segmentation/supervoxel_clustering.h>
+#include <pcl/point_cloud.h>
+#include <pcl/console/parse.h>
+#include <pcl/point_types_conversion.h>
+#include <pcl/features/normal_3d.h>
+
+#include <pcl/filters/filter.h>
+#include <pcl/common/centroid.h>
+#include <pcl/common/eigen.h>
+#include <Eigen/Dense>
+
+// wx widgets
 #include <wx/artprov.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/intl.h>
@@ -33,12 +74,6 @@
 #include <wx/wx.h>
 #include <wx/validate.h>
 #include <wx/valtext.h>
-
-#include <filesystem>  // Include the filesystem library for C++17 and later
-#include <vector>
-#include <string>
-#include <fstream>
-#include <nlohmann/json.hpp>
 
 class MainFrame : public wxFrame
 {
@@ -110,7 +145,6 @@ protected:
 	wxButton* view_segmant_button;
 	wxButton* open_feature_button;
 	wxStaticText* log_output;
-	wxGauge* gauge;
 	wxButton* start_button;
 	wxStaticText* parameter_options_header;
 	wxStaticText* resolution_tag;
@@ -146,7 +180,6 @@ protected:
 	wxCheckBox* density_check;
 	wxCheckBox* color_check;
 	wxCheckBox* area_check;
-	wxStatusBar* status_bar;
 
 	// event handlers:
 	void OnCloseEvt(wxCloseEvent& event);
@@ -166,12 +199,15 @@ protected:
 	void OnProjectSelection(wxCommandEvent& event);
 	void OpenInFileManager(const wxString& path);
 	void ConfirmClose();
-	void SaveOptions();
-	void SaveProjectOptions();
+	void SaveOptions(bool exit);
+	void SaveProjectOptions(bool exit);
 	void ReadProjectOptions();
 
 
 public:
+
+	wxStatusBar* status_bar;
+	wxGauge* gauge;
 
 	MainFrame(wxWindow* parent, wxWindowID id = wxID_MAIN_FRAME, const wxString& title = _("Point Cloud Segmenter 1.0"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(800, 450), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
 
@@ -190,16 +226,27 @@ public:
 	double smoothness_threshold;
 	int min_segment_size;
 
-	bool save_normal_bool;
-	bool segmentation_bool;
-	bool extract_features_bool;
-	bool pcl_convert_bool;
 	bool use_single_cam_transform;
 	bool use_supervoxel_refinement;
 	bool use_extended_convexity;
 	bool use_sanity_criterion;
 
 	std::vector<std::string> features_need;
+
+	// some public functions:
+	void ShowStatus(const std::string& text);
+	void ProcessThreadFunction();
+
+	double scale;
+	double score;
+
+	bool pcl_convert_bool;
+	bool save_normal_bool;
+	bool segmentation_bool;
+	bool extract_features_bool;
+
+	// Point Cloud -----------------------------------------------------------------------------------
+
 
 };
 
