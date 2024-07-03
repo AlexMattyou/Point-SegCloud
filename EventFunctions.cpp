@@ -1,6 +1,4 @@
 #include "MainFrame.h"
-#include "PointCloud.h"
-#include "FeatureExtract.h"
 
 void MainFrame::OnCloseEvt(wxCloseEvent& event) {
     SaveProjectOptions(true);
@@ -17,7 +15,7 @@ void MainFrame::OnFileDropEvt(wxDropFilesEvent& event) {
 
 void MainFrame::OnMenuNew(wxCommandEvent& event) {
 
-    ShowStatus("Fields cleared to add new things");
+    Status("Fields cleared to add new things");
     // Clear project name input
     project_name_input->Clear();
 
@@ -28,7 +26,7 @@ void MainFrame::OnMenuNew(wxCommandEvent& event) {
 
 void MainFrame::OnMenuOpen(wxCommandEvent& event) {
 
-    ShowStatus("Select a project from the list");
+    Status("Select a project from the list");
     // Create a new wxFrame for listing projects
     wxFrame* projectListFrame = new wxFrame(this, wxID_ANY, "Project List", wxDefaultPosition, wxSize(300, 400));
 
@@ -129,26 +127,26 @@ void MainFrame::OnMenuDelete(wxCommandEvent& event) {
             status_bar->SetStatusText("Failed to delete project folder: " + wxString(e.what(), wxConvUTF8));
         }
     }
-    ShowStatus("Project deleted");
+    Status("Project deleted");
 
     event.Skip();  // Continue handling the event normally
 }
 
 
 void MainFrame::OnMenuExit(wxCommandEvent& event) {
-    ShowStatus("Select 'Yes' to exit");
+    Status("Select 'Yes' to exit");
     SaveProjectOptions(true);
     ConfirmClose();
 }
 
 void MainFrame::OnHelpDocs(wxCommandEvent& event) {
-    ShowStatus("README.MD in the repository was opened");
+    Status("README.MD in the repository was opened");
     wxLaunchDefaultBrowser("https://github.com/AlexMattyou/PointCloudSegmentation/blob/master/README.md");
     event.Skip();
 }
 
 void MainFrame::OnHelpReport(wxCommandEvent& event) {
-    ShowStatus("Issues in the repository was opened, you can write the problems there");
+    Status("Issues in the repository was opened, you can write the problems there");
     wxLaunchDefaultBrowser("https://github.com/AlexMattyou/PointCloudSegmentation/issues");
     event.Skip();
 }
@@ -187,7 +185,7 @@ void MainFrame::ViewProjectEvt(wxMouseEvent& event) {
     }
 
     // Open the project folder in the file manager
-    ShowStatus("Project folder opened");
+    Status("Project folder opened");
     OpenInFileManager(absolutePath);
 
     event.Skip();
@@ -217,7 +215,7 @@ void MainFrame::ViewSegmentationEvt(wxMouseEvent& event) {
     }
 
     // Open the segments folder in the file manager
-    ShowStatus("Segmentation folder opened");
+    Status("Segmentation folder opened");
     OpenInFileManager(absolutePath);
 
     event.Skip();
@@ -232,7 +230,6 @@ void MainFrame::OpenFeaturesEvt(wxMouseEvent& event) {
         wxMessageBox("Please enter a project name to view the feature file.", "Open Feature File", wxOK | wxICON_INFORMATION);
         return;
     }
-
     // Construct the feature file path
     wxString featureFilePath = "Projects/" + project_name + "/feature.csv";
 
@@ -247,7 +244,7 @@ void MainFrame::OpenFeaturesEvt(wxMouseEvent& event) {
     }
 
     // Open the feature file in the default application
-    ShowStatus("Extracted feature.csv opened");
+    Status("Extracted feature.csv opened");
     OpenInFileManager(absolutePath);
 
     event.Skip();
@@ -255,8 +252,11 @@ void MainFrame::OpenFeaturesEvt(wxMouseEvent& event) {
 
 void MainFrame::StartProcessEvt(wxMouseEvent& event) {
     // Show initial status message
-    ShowStatus("Starting Progress...");
-
+    SaveProjectOptions(false);
+    start_button->Enable(false);
+    CalculateScale();
+    Status("Process started");
+    std::filesystem::remove("Projects/" + project_name + "/feature.csv");
     std::thread myThread(&MainFrame::ProcessThreadFunction, this);
     myThread.detach();
 }
@@ -264,7 +264,7 @@ void MainFrame::StartProcessEvt(wxMouseEvent& event) {
 ////////////////////////////////////////////////////////////////////////////////////
 
 void MainFrame::ConfirmClose() {
-    ShowStatus("Your projects will be saved");
+    Status("Your projects will be saved");
     wxMessageDialog confirmDialog(
         this,
         "Are you sure you want to exit?",
@@ -393,8 +393,6 @@ void MainFrame::SaveOptions(bool exit) {
         }
         return;
     }
-
-    use_single_cam_transform = single_camera_check->GetValue();
     use_supervoxel_refinement = refinement_check->GetValue();
     use_extended_convexity = convexty_check->GetValue();
     use_sanity_criterion = sanity_check->GetValue();
@@ -408,7 +406,8 @@ void MainFrame::SaveOptions(bool exit) {
     if (area_check->GetValue()) features_need.push_back("Area");
 
     // Combine all variables into a single message
-    
+
+    /*
     std::stringstream msg;
     msg << "project_name: " << project_name << "\n";
     msg << "dataset: " << dataset << "\n";
@@ -436,7 +435,7 @@ void MainFrame::SaveOptions(bool exit) {
 
     // Show the message box
     wxMessageBox(msg.str(), "Saved Options", wxOK | wxICON_INFORMATION);
-    
+    */
 }
 
 void MainFrame::SaveProjectOptions(bool exit) {
@@ -518,7 +517,6 @@ void MainFrame::ReadProjectOptions() {
     action_segmantation->SetValue(jsonData["segmentation_bool"].get<bool>());
     action_feature_extraction->SetValue(jsonData["extract_features_bool"].get<bool>());
     pcl_convert_bool = jsonData["pcl_convert_bool"].get<bool>();
-    single_camera_check->SetValue(jsonData["use_single_cam_transform"].get<bool>());
     refinement_check->SetValue(jsonData["use_supervoxel_refinement"].get<bool>());
     convexty_check->SetValue(jsonData["use_extended_convexity"].get<bool>());
     sanity_check->SetValue(jsonData["use_sanity_criterion"].get<bool>());
@@ -535,61 +533,84 @@ void MainFrame::ReadProjectOptions() {
     color_check->SetValue(std::find(features_need.begin(), features_need.end(), "Color") != features_need.end());
     area_check->SetValue(std::find(features_need.begin(), features_need.end(), "Area") != features_need.end());
 
-    ShowStatus("Project options recovered");
+    Status("Project options recovered");
 }
 
-void MainFrame::ShowStatus(const std::string& text) {
+void MainFrame::Status(const std::string& text) {
     status_bar->SetStatusText(wxString(text), 0);
+}
+
+void MainFrame::CalculateScale() {
+    save_normal_bool = action_normal->GetValue();
+    segmentation_bool = action_segmantation->GetValue();
+    extract_features_bool = action_feature_extraction->GetValue();
+
+    if (dataset.ends_with(".pcd")) {
+        pcl_convert_bool = false;
+    }
+    else if (dataset.ends_with(".txt")) {
+        pcl_convert_bool = true;
+    }
+
+    scale = 0;
+    int pclPoints = 3;
+    int normalPoints = 4;
+    int segmentPoints = 10;
+    int extractFeaturesPoints = 2;
+
+    scale = (1 + (pcl_convert_bool * pclPoints) + (save_normal_bool * normalPoints) + (segmentation_bool * segmentPoints) + (extract_features_bool + extractFeaturesPoints)) / (pcl_convert_bool + save_normal_bool + segmentation_bool + extract_features_bool);
+}
+
+void MainFrame::ProgressBar(int increment) {
+    if (scale == 0) {
+        return; // Avoid updating if scale is zero
+    }
+
+    score += increment * scale;
+    this->gauge->SetValue(score);
+}
+
+void MainFrame::Log(const std::string& text) {
+    log_output->SetLabel(text);
 }
 
 void MainFrame::ProcessThreadFunction() {
 
-    SaveProjectOptions(false);
-
-    PointCloud pc;
-    FeatureExtract data;
-
-    pc.CheckAndCreateProject(project_name);
-    pc.CheckAndCreateProject(project_name + "/Segments");
+    CheckAndCreateProject(project_name);
+    CheckAndCreateProject(project_name + "/Segments");
 
     std::string input_data;
     std::string raw_pcd = "Projects/" + project_name + "/raw.pcd";
     std::string normal_pcd = "Projects/" + project_name + "/normal.pcd";
     std::string segments_folder = "Projects/" + project_name + "/Segments";
-    this->gauge->SetValue(5);
+    std::string project_loc = "Projects/" + project_name;
     // [] 1
     if (pcl_convert_bool) {
 
-        ShowStatus("converting text data to pcd...");
-
         input_data = dataset;
         std::unordered_map<std::string, int> columnIndex;
-        pc.Txt2pcd(input_data, raw_pcd, columnIndex);
+        Txt2pcd(input_data, raw_pcd, columnIndex);
 
         input_data = raw_pcd;
-        ShowStatus("text data converted to pcd");
+        Status("text data converted to pcd");
     }
     else {
         input_data = dataset;
 
     }
-    this->gauge->SetValue(10);
 
     // [] 2
     if (save_normal_bool) {
-        ShowStatus("Calculating normal...");
-        pc.SaveNormals(input_data, normal_pcd);
+        SaveNormals(input_data, normal_pcd);
 
-        ShowStatus("Normal Calculated");
+        Status("Normal calculation done");
     }
-    this->gauge->SetValue(30);
 
     // [] 3
     if (segmentation_bool) {
-        ShowStatus("Segmentation Started...");
-        pc.segmentPointCloud(
+        SegmentPointCloud(
             input_data,
-            normal_pcd, 
+            normal_pcd,
             segments_folder,
 
             voxel_resolution,
@@ -607,10 +628,23 @@ void MainFrame::ProcessThreadFunction() {
             use_sanity_criterion,
 
             color_importance != 0.0,
-            segment_type
+            segment_type);
 
-        );
-        ShowStatus("Segmentation done");
+        Status("Segmentation done");
+        ProgressBar(1);
     }
-    this->gauge->SetValue(85);
+
+    // [] 4
+    if (extract_features_bool) {
+        AllFeatureExtract(project_loc, features_need);
+        Status("Feature extraction done");
+        ProgressBar(1);
+    }
+    start_button->Enable(true);
+    scale = 0.0;
+    score = 0.0;
+    Log("All process finished successfully");
+    start_button->Enable(true);
+    Status(" ");
+    this->gauge->SetValue(0);
 }

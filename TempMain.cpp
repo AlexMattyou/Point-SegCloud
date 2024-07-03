@@ -1,5 +1,5 @@
-#include "PointCloud.h"
-#include "FeatureExtract.h"
+/*
+#include "MainFrame.h"
 
 int main(int argc, char** argv)
 {
@@ -7,9 +7,8 @@ int main(int argc, char** argv)
     double duration;
     start = std::clock();
 
-    PointCloud pc;
-    FeatureExtract data;
-
+    MainFrame Mframe;
+    
     std::string project_name = "trees_new";
     std::string project_file = "trees.txt";
 
@@ -19,39 +18,39 @@ int main(int argc, char** argv)
 
     bool extract_features_bool = true;
 
-    pc.CheckAndCreateProject(project_name);
-    pc.CheckAndCreateProject(project_name + "/Segments");
+    Mframe.CheckAndCreateProject(project_name);
+    Mframe.CheckAndCreateProject(project_name + "/Segments");
 
     // Convert text file to PCD
     if (pcl_convert_bool) {
         std::string input_file = "Datasets/" + project_file;
         std::string output_file = "Projects/" + project_name + "/raw.pcd";
         std::unordered_map<std::string, int> columnIndex;
-        pc.Txt2pcd(input_file, output_file, columnIndex);
+        Mframe.Txt2pcd(input_file, output_file, columnIndex);
         std::string raw_txt_file = "Projects/" + project_name + "/raw.txt";
-        pc.Pcd2txt(output_file, raw_txt_file);
+        Mframe.Pcd2txt(output_file, raw_txt_file);
 
         duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         std::cout << "time elapsed: " << duration << " seconds." << std::endl;
     }
 
-    
+
     // Save normals to a PCD file
     if (save_normal_bool) {
         std::string input_file = "Projects/" + project_name + "/raw.pcd";
         std::string output_file = "Projects/" + project_name + "/normal.pcd";
-        pc.SaveNormals(input_file, output_file);
+        MFrame.SaveNormals(input_file, output_file);
 
         duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         std::cout << "time elapsed: " << duration << " seconds." << std::endl;
     }
-    
+
     if (segmentation_bool) {
         std::string raw_input_file = "Projects/" + project_name + "/raw.pcd";
         std::string normal_input_file = "Projects/" + project_name + "/normal.pcd";
         std::string output_folder = "Projects/" + project_name + "/Segments";
 
-        pc.segmentPointCloud(
+        MFrame.segmentPointCloud(
             raw_input_file,
             normal_input_file, output_folder,
             1.0f,   //voxel_resolution
@@ -76,19 +75,20 @@ int main(int argc, char** argv)
 
     if (extract_features_bool) {
         std::string project_files = "Projects/" + project_name;
-        std::vector<std::string> features_need = { 
-        "Geometrical", 
+        std::vector<std::string> features_need = {
+        "Geometrical",
         "Statistical",
-        "Shape", 
+        "Shape",
         //"Density", 
         "Color"
         //"Area",
         }; // -> Shape, Density, Area features are not yet developed
 
-        data.AllFeatureExtract(project_files, features_need);
+        MFrame.AllFeatureExtract(project_files, features_need);
 
         std::cout << "Feature extraction completed." << std::endl;
     }
 
     return 0;
 }
+*/

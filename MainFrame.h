@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef MAINFRAME_H
-#define MAINFRAME_H
+#ifndef MAIN_H
+#define MAIN_H
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
@@ -41,6 +41,13 @@
 #include <pcl/common/centroid.h>
 #include <pcl/common/eigen.h>
 #include <Eigen/Dense>
+#include <armadillo>
+#include <pcl/surface/convex_hull.h>
+
+#include <pcl/common/projection_matrix.h>
+#include <pcl/common/common.h>
+#include <pcl/filters/project_inliers.h>
+#include <pcl/PolygonMesh.h>
 
 // wx widgets
 #include <wx/artprov.h>
@@ -77,8 +84,6 @@
 
 class MainFrame : public wxFrame
 {
-private:
-
 protected:
 	enum
 	{
@@ -106,7 +111,6 @@ protected:
 		wxID_COLOR,
 		wxID_SPATIAL,
 		wxID_NORMAL,
-		wxID_SINGLE_CAMERA_BOOL,
 		wxID_REFINEMENT_BOOL,
 		wxID_CONCAVITY,
 		wxID_SMOOTHNESS,
@@ -159,7 +163,6 @@ protected:
 	wxTextCtrl* spatial_input;
 	wxStaticText* normal_tag;
 	wxTextCtrl* normal_input;
-	wxCheckBox* single_camera_check;
 	wxCheckBox* refinement_check;
 	wxStaticText* lccp_header;
 	wxStaticText* concavity_tag;
@@ -234,8 +237,12 @@ public:
 	std::vector<std::string> features_need;
 
 	// some public functions:
-	void ShowStatus(const std::string& text);
+	void Status(const std::string& text);
 	void ProcessThreadFunction();
+
+	void CalculateScale();
+	void ProgressBar(int increment);
+	void Log(const std::string& text);
 
 	double scale;
 	double score;
@@ -247,8 +254,89 @@ public:
 
 	// Point Cloud -----------------------------------------------------------------------------------
 
+public:
+	using PointT = pcl::PointXYZRGBA;  // Define PointT once
 
+	int CheckAndCreateProject(const std::string& folderName);
+
+	int Txt2pcd(std::string& inputFile, std::string& outputFile, std::unordered_map<std::string, int>& columnIndex);
+	int Pcd2txt(std::string& inputFile, std::string& outputFile);
+	int SaveNormals(const std::string& inputFile, const std::string& outputFile);
+
+	typedef pcl::LCCPSegmentation<PointT>::SupervoxelAdjacencyList SuperVoxelAdjacencyList;
+
+	void SegmentPointCloud(const std::string& input_cloud_file,
+		const std::string& input_normals_file,
+		const std::string& output_folder,
+		float voxel_resolution,
+		float seed_resolution,
+		float color_importance,
+		float spatial_importance,
+		float normal_importance,
+		bool use_single_cam_transform,
+		bool use_supervoxel_refinement,
+		float concavity_tolerance_threshold,
+		float smoothness_threshold,
+		uint32_t min_segment_size,
+		bool use_extended_convexity,
+		bool use_sanity_criterion,
+		bool colorful_segmentation,
+		const std::string& saving_type);
+
+private:
+	void SaveSegmentedClouds(const pcl::PointCloud<pcl::PointXYZL>::Ptr& labeled_cloud,
+		const std::string& output_folder,
+		bool colorful_segmentation,
+		const std::string& raw_file, const std::string& saving_type);
+
+	void ClearFolder(const std::filesystem::path& folderPath);
+
+	// ~ feature Extraction---------------------------------------------------------------------------
+
+public:
+	//shape features
+	double ptness;
+	double curveness;
+	double surfaceness;
+	double linearity;
+	double planarity;
+	double volumetric;
+
+	//density features
+	double Density;
+	double HeightVariance;
+
+	//area features
+	double Aconv;
+	double Apoly;
+	double Bpoly;
+
+	void AllFeatureExtract(const std::string& project_files, const std::vector<std::string>& features_need);
+
+private:
+	struct Point {
+		double x, y, z;
+	};
+
+	// Shape Features
+	arma::mat PclToArmaMatrix(const std::string& filePath);
+	void ComputeShapeFeatures(const arma::mat& data);
+
+	//density features
+	void ComputeDensityFeatures(const std::string& filePath);
+	double ComputeDensity(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+	double ComputeHeightVariance(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+
+	//area features
+	void ComputeAreaFeatures(const std::string& filePath);
 };
 
-#endif // MAINFRAME_H
+// Derived class to access protected method
+template<typename PointT>
+class AccessibleLCCPSegmentation : public pcl::LCCPSegmentation<PointT> {
+public:
+	using pcl::LCCPSegmentation<PointT>::mergeSmallSegments;
+};
+
+#endif // MAIN_H
 

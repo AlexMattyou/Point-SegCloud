@@ -244,7 +244,6 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
 
 	gauge = new wxGauge(this, wxID_PROGRESS_BAR, 100, wxDefaultPosition, wxSize(-1, -1), wxGA_HORIZONTAL | wxGA_SMOOTH);
 	gauge->SetValue(0);
-	gauge->SetToolTip(_("S"));
 
 	gauge_slizer->Add(gauge, 1, wxALL, 5);
 
@@ -367,11 +366,6 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
 
 	wxBoxSizer* supervoxel_checkbox_sizer;
 	supervoxel_checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-	single_camera_check = new wxCheckBox(this, wxID_SINGLE_CAMERA_BOOL, _("Single Camera Transform"), wxDefaultPosition, wxDefaultSize, 0);
-	single_camera_check->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-
-	supervoxel_checkbox_sizer->Add(single_camera_check, 1, wxBOTTOM | wxLEFT, 5);
 
 	refinement_check = new wxCheckBox(this, wxID_REFINEMENT_BOOL, _("Supervoxel Refinement"), wxDefaultPosition, wxDefaultSize, 0);
 	refinement_check->SetValue(true);
@@ -526,7 +520,7 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
 
 	density_check = new wxCheckBox(this, wxID_F_DENSITY, _("Density"), wxDefaultPosition, wxDefaultSize, 0);
 	density_check->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-	density_check->SetToolTip(_("Features: Density, HeightVariance, VerticalProfile"));
+	density_check->SetToolTip(_("Features: Density, HeightVariance"));
 
 	feature_need_sizer->Add(density_check, 0, wxALL, 4);
 
