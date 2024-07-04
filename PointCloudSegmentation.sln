@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PointCloudSegmentation", "PointCloudSegmentation.vcxproj", "{A27323D3-D8F7-4D82-B276-405960CD746B}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Point SegCloud Installer", "..\Point SegCloud Installer\Point SegCloud Installer.vdproj", "{1342C590-7C00-4A45-A813-2972C7F732A7}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Point SegCloud", "..\Point SegCloud\Point SegCloud.vdproj", "{E058F625-7509-4636-850B-4173EA06BD08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{A27323D3-D8F7-4D82-B276-405960CD746B}.Release|x64.Build.0 = Release|x64
 		{A27323D3-D8F7-4D82-B276-405960CD746B}.Release|x86.ActiveCfg = Release|Win32
 		{A27323D3-D8F7-4D82-B276-405960CD746B}.Release|x86.Build.0 = Release|Win32
-		{1342C590-7C00-4A45-A813-2972C7F732A7}.Debug|x64.ActiveCfg = Debug
-		{1342C590-7C00-4A45-A813-2972C7F732A7}.Debug|x86.ActiveCfg = Debug
-		{1342C590-7C00-4A45-A813-2972C7F732A7}.Release|x64.ActiveCfg = Release
-		{1342C590-7C00-4A45-A813-2972C7F732A7}.Release|x86.ActiveCfg = Release
+		{E058F625-7509-4636-850B-4173EA06BD08}.Debug|x64.ActiveCfg = Debug
+		{E058F625-7509-4636-850B-4173EA06BD08}.Debug|x86.ActiveCfg = Debug
+		{E058F625-7509-4636-850B-4173EA06BD08}.Release|x64.ActiveCfg = Release
+		{E058F625-7509-4636-850B-4173EA06BD08}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
