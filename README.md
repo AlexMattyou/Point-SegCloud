@@ -1,4 +1,8 @@
-# Point-SegCloud 🌐
+# Point-SegCloud 🌐 (Archived)
+
+> **Archived project:** This project was developed during my internship at IIST. Development has now stopped, and I no longer plan to continue maintaining or improving it. I'm preserving this repository as an archive of my work during that period.
+>
+> Although active development has ended, the available releases may still be useful for people working with older versions of the software or needing its existing functionality. You can download the MSI installer from the [Releases](https://github.com/AlexMattyou/Point-SegCloud/releases) page.
 
 Point-SegCloud is a GUI-based software developed in C++ for researchers working with aerial point cloud data. It enables segmentation of point clouds, extraction of features, and storage of segmented data into separate files, allowing detailed data analysis.
 
@@ -31,10 +35,10 @@ Point-SegCloud is a GUI-based software developed in C++ for researchers working 
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you’d like to contribute:  
+Contributions are welcome! If you’d like to contribute:
 
-1. Fork the repository.  
-2. Create a new branch (`git checkout -b feature-branch`).  
-3. Commit your changes (`git commit -m 'Add new feature'`).  
-4. Push to the branch (`git push origin feature-branch`).  
-5. Open a Pull Request.  
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Commit your changes (`git commit -m 'Add new feature'`).
+4. Push to the branch (`git push origin feature-branch`).
+5. Open a Pull Request.
